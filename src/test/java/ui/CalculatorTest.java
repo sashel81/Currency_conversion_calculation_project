@@ -12,27 +12,27 @@ public class CalculatorTest extends BaseTest {
 
     @BeforeMethod
     public void loadCalculatorPage() {
-        mainPage.loadPage();
-        actionService.moveToTheFooter()
+        mainPage.loadPage()
+                .moveToTheFooter()
                 .changeCountry()
                 .selectCountry(Countries.LITHUANIA);
     }
 
     @Test(description = "Check the default currency is changed when country selected")
     public void checkDefaultCurrencyWhenCountrySelected() {
-        actionService.moveToTheFooter()
+        mainPage.moveToTheFooter()
                 .changeCountry()
-                .selectCountry(Countries.UKRAINE);
-        actionService.moveToTheForm();
+                .selectCountry(Countries.UKRAINE)
+                .moveToTheForm();
 
-        assertEquals(actionService.waitForDefaultCurrency().defaultCurrencyIs(), Currency.UAH);
+        assertEquals(mainPage.waitForDefaultCurrency().defaultSellCurrencyIs(), Currency.UAH);
     }
 
     @Test(description = "Check that BUY amount is empty when SELL amount is set")
     public void checkBuyAmountIsEmptyWhenSellAmountIsSet() {
-        actionService.moveToTheForm()
-                .waitForDefaultCurrency();
-        actionService.waitForSelectCurrencyDropDown()
+        mainPage.moveToTheForm()
+                .waitForDefaultCurrency()
+                .waitForSelectCurrencyDropDown()
                 .setSellCurrency(Currency.PLN)
                 .userFillSellAmount("1000")
                 .setBuyCurrency(Currency.USD);
@@ -42,9 +42,9 @@ public class CalculatorTest extends BaseTest {
 
     @Test(description = "Check that SELL amount is empty when BUY amount is set")
     public void checkSellAmountIsEmptyWhenBuyAmountIsSet() {
-        actionService.moveToTheForm()
-                .waitForDefaultCurrency();
-        actionService.waitForSelectCurrencyDropDown()
+        mainPage.moveToTheForm()
+                .waitForDefaultCurrency()
+                .waitForSelectCurrencyDropDown()
                 .setSellCurrency(Currency.DKK)
                 .setBuyCurrency(Currency.EUR)
                 .userFillBuyAmount("2000");
@@ -54,15 +54,29 @@ public class CalculatorTest extends BaseTest {
 
     @Test(description = "Check that loss amount that displayed is diff of bank amount and Paysera amount")
     public void checkTheLossAmount() {
-        actionService.moveToTheForm()
-                .waitForDefaultCurrency();
-        actionService.waitForSelectCurrencyDropDown()
+        mainPage.moveToTheForm()
+                .waitForDefaultCurrency()
+                .waitForSelectCurrencyDropDown()
                 .setSellCurrency(Currency.NOK)
                 .setBuyCurrency(Currency.USD)
                 .userFillSellAmount("1000")
-                .pressFilterButton();
-        actionService.waitForTableWithFilteredResults();
+                .pressFilterButton()
+                .waitForTableWithFilteredResults();
 
         assertEquals(Float.parseFloat(df.format(mainPage.getBankAmount() - mainPage.getPayseraAmount())), mainPage.getLoss());
+    }
+
+    @Test(description = "Check non-numeric value input field validation")
+    public void setNonNumericDataInSellField() {
+        mainPage.moveToTheForm()
+                .waitForDefaultCurrency()
+                .waitForSelectCurrencyDropDown()
+                .setSellCurrency(Currency.NOK)
+                .setBuyCurrency(Currency.USD)
+                .userFillSellAmount("ttt")
+                .pressFilterButton();
+
+        assertTrue(toast.isDisplayed());
+        assertTrue(toast.getToastText().contains("Invalid parameters"));
     }
 }

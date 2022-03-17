@@ -1,56 +1,35 @@
 package services;
 
-import io.qameta.allure.Step;
+import base.Driver;
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.FindBy;
-import org.openqa.selenium.support.ui.ExpectedCondition;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import pages.BasePage;
-import pages.MainPage;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
-public class ActionService extends BasePage {
+public class ActionService {
+    protected WebDriver driver;
+    protected WebDriverWait wait;
+    protected Actions actions;
 
-    @FindBy(css = ".rate-table-filter")
-    private WebElement form;
-
-    @FindBy(css = ".js-localization-popover")
-    private WebElement changeCountry;
-
-    private By currentCurrency = By.cssSelector(".ui-select-toggle");
-
-    private By tableString = By.cssSelector("tbody tr");
-
-    public ActionService() {super();}
-
-    @Step("Wait till default currency present")
-    public MainPage waitForDefaultCurrency() {
-        wait.until((ExpectedCondition<Boolean>) d -> d.findElements(currentCurrency).get(0).getText().length() != 0);
-        return new MainPage();
+    public ActionService() {
+        this.driver = Driver.getInstance().getWebDriver();
+        this.wait = new WebDriverWait(driver, 25);
+        PageFactory.initElements(driver, this);
+        actions = new Actions(driver);
     }
 
-    @Step("Wait till drop down menu with countries present")
-    public MainPage waitForSelectCurrencyDropDown() {
-        wait.until((ExpectedCondition<Boolean>) d -> d.findElements(currentCurrency).size() > 1);
-        return new MainPage();
+    public void waitVisibilityAndClick(By locator) {
+        wait.until(ExpectedConditions.visibilityOfElementLocated((locator))).click();
     }
 
-    @Step("Wait for table with filter results")
-    public MainPage waitForTableWithFilteredResults() {
-        wait.until((ExpectedCondition<Boolean>) d -> d.findElements(tableString).size() == 1);
-        return new MainPage();
+    public void waitVisibilityOf(WebElement element) {
+        wait.until(ExpectedConditions.visibilityOf(element));
     }
 
-    @Step("Move to the footer of page")
-    public MainPage moveToTheFooter() {
-        actions.moveToElement(changeCountry).build().perform();
-        return new MainPage();
-    }
-
-    @Step("Move to the form of calculator")
-    public ActionService moveToTheForm() {
-        wait.until(ExpectedConditions.visibilityOf(form));
-        actions.moveToElement(form).build().perform();
-        return this;
+    public void moveToElement(WebElement element){
+        actions.moveToElement(element).build().perform();
     }
 }

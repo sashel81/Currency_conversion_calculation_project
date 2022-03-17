@@ -5,7 +5,6 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.ui.ExpectedCondition;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class MainPage extends BasePage {
 
@@ -24,6 +23,9 @@ public class MainPage extends BasePage {
     @FindBy(xpath = "//button[contains(text(),'Filter')]")
     private WebElement filterButton;
 
+    @FindBy(css = ".rate-table-filter")
+    private WebElement form;
+
     private By dropDownCountry(String country) {
         return By.xpath("//*[@aria-labelledby='countries-dropdown']/li[contains(., '" + country + "')]");
     }
@@ -39,6 +41,8 @@ public class MainPage extends BasePage {
     private By payseraAmount = By.cssSelector("[data-title='Paysera rate']");
 
     private By swedbankAmount = By.cssSelector("[data-title='Swedbank amount']");
+
+    private By tableString = By.cssSelector("tbody tr");
 
     public MainPage() {
         super();
@@ -60,13 +64,13 @@ public class MainPage extends BasePage {
     @Step("Select country from dropdown menu")
     public MainPage selectCountry(String country) {
         selectCountryButton.click();
-        wait.until(ExpectedConditions.visibilityOfElementLocated((dropDownCountry(country)))).click();
-        wait.until(ExpectedConditions.visibilityOf(changeCountry));
+        actionService.waitVisibilityAndClick((dropDownCountry(country)));
+        actionService.waitVisibilityOf(changeCountry);
         return this;
     }
 
     @Step("Get default currency")
-    public String defaultCurrencyIs() {
+    public String defaultSellCurrencyIs() {
         return driver.findElements(currentCurrency).get(0).getText();
     }
 
@@ -99,14 +103,14 @@ public class MainPage extends BasePage {
     @Step("Set SELL currency")
     public MainPage setSellCurrency(String currency) {
         driver.findElements(currentCurrency).get(0).click();
-        wait.until(ExpectedConditions.presenceOfElementLocated(selectCurrency(currency))).click();
+        actionService.waitVisibilityAndClick(selectCurrency(currency));
         return this;
     }
 
     @Step("Set BUY currency")
     public MainPage setBuyCurrency(String currency) {
         driver.findElements(currentCurrency).get(1).click();
-        wait.until(ExpectedConditions.presenceOfElementLocated(selectCurrency(currency))).click();
+        actionService.waitVisibilityAndClick(selectCurrency(currency));
         return this;
     }
 
@@ -131,6 +135,36 @@ public class MainPage extends BasePage {
     @Step("Press filter button")
     public MainPage pressFilterButton() {
         filterButton.click();
+        return this;
+    }
+    @Step("Wait till default currency present")
+    public MainPage waitForDefaultCurrency() {
+        wait.until((ExpectedCondition<Boolean>) d -> d.findElements(currentCurrency).get(0).getText().length() != 0);
+        return this;
+    }
+
+    @Step("Wait till drop down menu with countries present")
+    public MainPage waitForSelectCurrencyDropDown() {
+        wait.until((ExpectedCondition<Boolean>) d -> d.findElements(currentCurrency).size() > 1);
+        return this;
+    }
+
+    @Step("Wait for table with filter results")
+    public MainPage waitForTableWithFilteredResults() {
+        wait.until((ExpectedCondition<Boolean>) d -> d.findElements(tableString).size() == 1);
+        return this;
+    }
+
+    @Step("Move to the footer of page")
+    public MainPage moveToTheFooter() {
+        actionService.moveToElement(changeCountry);
+        return this;
+    }
+
+    @Step("Move to the form of calculator")
+    public MainPage moveToTheForm() {
+        actionService.waitVisibilityOf(form);
+        actionService.moveToElement(form);
         return this;
     }
 }
